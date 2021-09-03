@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "466982309768",
+    "project_id": "aestagram-18a08",
+    "storage_bucket": "aestagram-18a08.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:466982309768:android:9d5bf5a2a9a1e589a4343d",
+        "android_client_info": {
+          "package_name": "com.example.aestagram"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "466982309768-cqjv3k61vuessgimrtmq15rkuhhg1n5f.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBKoPJmxtYUykkp-h0qbObKojOUQizwxgg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "466982309768-cqjv3k61vuessgimrtmq15rkuhhg1n5f.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
