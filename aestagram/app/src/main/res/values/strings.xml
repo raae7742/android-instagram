@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Aestagram</string>
-    <string name="facebook_app_id">188831942210586</string>
-    <string name="fb_login_protocol_scheme">fb188831942210586</string>
+    <string name="facebook_app_id">142148808050639</string>
+    <string name="fb_login_protocol_scheme">fb142148808050639</string>
 
 
     <!-- Sign In -->
