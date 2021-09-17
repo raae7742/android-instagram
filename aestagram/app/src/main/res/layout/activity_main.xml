@@ -18,7 +18,7 @@
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/logo_title"/>
+                android:src="@drawable/logo_title" />
         </RelativeLayout>
     </androidx.appcompat.widget.Toolbar>
 
@@ -26,17 +26,19 @@
         android:id="@+id/toolbar_division"
         android:layout_width="match_parent"
         android:layout_height="1dp"
+        android:layout_below="@id/my_toolbar"
         android:background="@color/colorDivision"
         android:orientation="horizontal">
     </LinearLayout>
 
     <FrameLayout
         android:id="@+id/main_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_above="@id/nav_division"
         android:layout_below="@+id/toolbar_division"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-    </FrameLayout>
+        android:layout_marginTop="0dp"
+        android:layout_marginBottom="0dp"></FrameLayout>
 
     <LinearLayout
         android:id="@+id/nav_division"

@@ -62,7 +62,7 @@ class AddPhotoActivity : AppCompatActivity() {
     fun contentUpload() {
         //Make filename
 
-        var timestamp = SimpleDateFormat("yyyyMMdd").format(Date())
+        var timestamp = SimpleDateFormat("yyyyMMdd_HHmmss").format(Date())
         var imageFileName = "IMAGE_" + timestamp + "_.png"
 
         var storageRef = storage?.reference?.child("images")?.child(imageFileName)
