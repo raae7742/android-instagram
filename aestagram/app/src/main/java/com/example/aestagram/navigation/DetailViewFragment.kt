@@ -45,6 +45,7 @@ class DetailViewFragment : Fragment() {
                 // 리스트 초기화
                 contentDTOs.clear()
                 contentUidList.clear()
+                if (querySnapshot == null) return@addSnapshotListener
                 for (snapshot in querySnapshot!!.documents) {
                     // 클래스 형변환
                     var item = snapshot.toObject(ContentDTO::class.java)
@@ -99,6 +100,18 @@ class DetailViewFragment : Fragment() {
             }
             //ProfileImages
             //Glide.with(holder.itemView.context).load(contentDTOs!![position].imageUrl).into(viewHolder.detailviewitem_profile_image)
+
+            //This code is when the profile image is clicked
+            viewHolder.detailviewitem_profile_image.setOnClickListener{
+                var fragment = UserFragment()
+                var bundle = Bundle()
+
+                bundle.putString("destinationUid", contentDTOs[position].uid)
+                bundle.putString("userId", contentDTOs[position].userId)
+                fragment.arguments = bundle
+
+                activity?.supportFragmentManager?.beginTransaction()?.replace(R.id.main_content, fragment)?.commit()
+            }
         }
 
         override fun getItemCount(): Int {

@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.aestagram.navigation.*
@@ -16,6 +17,8 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
 
     // 하단 네비게이션 메뉴 리스너
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        setToolbarDefault()
+        
         when(item.itemId) {
             R.id.action_home -> {
                 var detailViewFragment = DetailViewFragment()
@@ -51,6 +54,13 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
         return false
     }
 
+    fun setToolbarDefault() {
+        toolbar_username.visibility = View.GONE
+        toolbar_btn_back.visibility = View.GONE
+        toolbar_title_image.visibility = View.VISIBLE
+
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -61,5 +71,6 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
 
         //Set default screen
         bottom_navigation.selectedItemId = R.id.action_home
+        setToolbarDefault()
     }
 }

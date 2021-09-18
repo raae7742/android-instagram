@@ -71,6 +71,12 @@ class LoginActivity : AppCompatActivity() {
 
     }
 
+    override fun onStart() {
+        super.onStart()
+        if (auth?.currentUser != null)
+            moveMainPage(auth?.currentUser)
+    }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         callbackManager?.onActivityResult(requestCode, resultCode, data);
         super.onActivityResult(requestCode, resultCode, data)
@@ -179,6 +185,7 @@ class LoginActivity : AppCompatActivity() {
     fun moveMainPage (user:FirebaseUser?) {
         if (user != null) {
             startActivity(Intent( this, MainActivity::class.java));
+            finish()
         }
     }
 
