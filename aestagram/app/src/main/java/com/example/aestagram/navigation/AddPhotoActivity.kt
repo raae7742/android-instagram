@@ -19,7 +19,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 class AddPhotoActivity : AppCompatActivity() {
-    var PICK_IMAGE_FROM_ALBUM = 0
     var storage : FirebaseStorage ?= null
     var photoUri : Uri? = null
     var auth : FirebaseAuth? = null
@@ -68,7 +67,7 @@ class AddPhotoActivity : AppCompatActivity() {
         var storageRef = storage?.reference?.child("images")?.child(imageFileName)
 
         // 두 가지 방식 중 가독성이 좋은 것 택
-        //Promise method
+        //Promise method -> 더 보편적
         storageRef?.putFile(photoUri!!)?.continueWithTask { task: Task<UploadTask.TaskSnapshot>->
             return@continueWithTask storageRef.downloadUrl
         }?.addOnSuccessListener { uri ->

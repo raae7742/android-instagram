@@ -9,10 +9,12 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.aestagram.navigation.*
 import com.google.android.material.navigation.NavigationBarView
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListener {
 
+    // 하단 네비게이션 메뉴 리스너
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
             R.id.action_home -> {
@@ -27,7 +29,7 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
             }
             R.id.action_add_photo -> {
                 if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                    startActivity(Intent(this, AddPhotoActivity::class.java))
+                    startActivity(Intent(this, AddPhotoActivity::class.java))   // 갤러리 앱 연결
                 }
             }
             R.id.action_favorite_alarm -> {
@@ -37,6 +39,11 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
             }
             R.id.action_account -> {
                 var userFragment = UserFragment()
+                var bundle = Bundle()
+                var uid = FirebaseAuth.getInstance().currentUser?.uid
+                bundle.putString("destinationUid", uid)     // 번들에 uid 담아 userFragment로 전달
+                userFragment.arguments = bundle
+
                 supportFragmentManager.beginTransaction().replace(R.id.main_content, userFragment).commit()
                 return true
             }
@@ -49,6 +56,7 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
         setContentView(R.layout.activity_main)
         bottom_navigation.setOnItemSelectedListener(this)
 
+        // 필수 권한 요청
         ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE), 1)
 
         //Set default screen

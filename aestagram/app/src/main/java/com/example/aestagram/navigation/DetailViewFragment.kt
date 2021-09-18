@@ -24,34 +24,44 @@ class DetailViewFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         var view = LayoutInflater.from(activity).inflate(R.layout.fragment_detail, container, false)
 
+        //firebase data storage
         firestore = FirebaseFirestore.getInstance()
+        //firebase user id
         uid = FirebaseAuth.getInstance().currentUser?.uid
 
-        view.detailviewfragment_recyclerview.adapter = DetailViewRecyclerViewAdapter()
-        view.detailviewfragment_recyclerview.layoutManager = LinearLayoutManager(activity)
+        view.detailviewfragment_recyclerview.adapter = DetailViewRecyclerViewAdapter()      // recyclerView에 어댑터 연결
+        view.detailviewfragment_recyclerview.layoutManager = LinearLayoutManager(activity)  // LinerLayout 설정
 
         return view
     }
 
     inner class DetailViewRecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-        var contentDTOs : ArrayList<ContentDTO> = arrayListOf()
-        var contentUidList : ArrayList<String> = arrayListOf()
+        var contentDTOs : ArrayList<ContentDTO> = arrayListOf()     // 타임라인으로 보여줄 content 리스트
+        var contentUidList : ArrayList<String> = arrayListOf()      // contentDTOs와 동일한 순서로 user id 리스트
 
         init {
+            // 최신 순 정렬
             firestore?.collection("images")?.orderBy("timestamp")?.addSnapshotListener { querySnapshot, firebaseFirestoreException ->
+                // 리스트 초기화
                 contentDTOs.clear()
                 contentUidList.clear()
                 for (snapshot in querySnapshot!!.documents) {
+                    // 클래스 형변환
                     var item = snapshot.toObject(ContentDTO::class.java)
+
+                    // 각각 리스트에 추가
                     contentDTOs.add(item!!)
                     contentUidList.add(snapshot.id)
                 }
+
+                // 데이터가 변경되었음을 알림
                 notifyDataSetChanged()
             }
 
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+            // viewHolder에 레이아웃 설정
             var view = LayoutInflater.from(parent.context).inflate(R.layout.item_detail, parent, false)
             return CustomViewHolder(view)
         }
@@ -95,17 +105,20 @@ class DetailViewFragment : Fragment() {
             return contentDTOs.size
         }
 
+        // 좋아요 이벤트
         fun favoriteEvent(position : Int) {
+            // 좋아요하려는 content 불러오기
             var tsDoc = firestore?.collection("images")?.document(contentUidList[position])
+
             firestore?.runTransaction { transaction ->
                 var contentDTO = transaction.get(tsDoc!!).toObject(ContentDTO::class.java)
 
                 if (contentDTO!!.favorites.containsKey(uid)){
-                    // When the button is clicked
+                    // When the button is clicked -> 좋아요 해제
                     contentDTO?.favoriteCount = contentDTO?.favoriteCount - 1
                     contentDTO?.favorites.remove(uid)
                 } else {
-                    // When the button is not clicked
+                    // When the button is not clicked -> 좋아요 설정
                     contentDTO?.favoriteCount = contentDTO?.favoriteCount + 1
                     contentDTO?.favorites[uid!!] = true
                 }
