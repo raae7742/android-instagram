@@ -1,16 +1,19 @@
 package com.example.aestagram
 
+import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.aestagram.navigation.*
 import com.google.android.material.navigation.NavigationBarView
 import com.google.firebase.auth.FirebaseAuth
+import kotlinx.android.synthetic.main.activity_add_photo.*
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListener {
@@ -18,7 +21,7 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
     // 하단 네비게이션 메뉴 리스너
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         setToolbarDefault()
-        
+
         when(item.itemId) {
             R.id.action_home -> {
                 var detailViewFragment = DetailViewFragment()
@@ -58,7 +61,6 @@ class MainActivity : AppCompatActivity(),NavigationBarView.OnItemSelectedListene
         toolbar_username.visibility = View.GONE
         toolbar_btn_back.visibility = View.GONE
         toolbar_title_image.visibility = View.VISIBLE
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

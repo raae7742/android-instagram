@@ -1,12 +1,19 @@
 package com.example.aestagram.navigation
 
+import android.app.Activity
 import android.content.Intent
+import android.graphics.PorterDuff
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.BlendModeColorFilterCompat
+import androidx.core.graphics.BlendModeCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,8 +23,13 @@ import com.example.aestagram.LoginActivity
 import com.example.aestagram.MainActivity
 import com.example.aestagram.R
 import com.example.aestagram.navigation.model.ContentDTO
+import com.example.aestagram.navigation.model.FollowDTO
+import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.storage.UploadTask
+import kotlinx.android.synthetic.main.activity_add_photo.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_user.view.*
 
@@ -58,10 +70,129 @@ class UserFragment : Fragment() {
             mainactivity?.toolbar_title_image?.visibility = View.GONE
             mainactivity?.toolbar_username?.visibility = View.VISIBLE
             mainactivity?.toolbar_btn_back?.visibility = View.VISIBLE
+            fragmentView?.account_btn_follow_signout?.setOnClickListener{
+                requestFollow()
+            }
         }
         fragmentView?.account_recyclerview?.adapter = UserFragmentRecyclerViewAdapter()                   // 리싸이클러뷰에 어댑터 설정
         fragmentView?.account_recyclerview?.layoutManager = GridLayoutManager(activity,3)       // 열이 3개인 gridLayout
+
+        fragmentView?.account_iv_profile?.setOnClickListener{
+            var photoPickerIntent = Intent(Intent.ACTION_PICK)
+            photoPickerIntent.type = "image/*"
+            launcher.launch(photoPickerIntent);
+        }
+        getProfileImage()
+        getFollowersAndFollowings()
         return fragmentView
+    }
+
+    val launcher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            var imageUri = result.data?.data
+            var uid = FirebaseAuth.getInstance().currentUser?.uid
+            var storageRef = FirebaseStorage.getInstance().reference.child("userProfileImages").child(uid!!)    // uid와 맞는 유저의 프로필 이미지 참조 정보
+            storageRef.putFile(imageUri!!)
+                .continueWithTask { task: Task<UploadTask.TaskSnapshot> ->                                               // 프로필 이미지 업로드
+                    return@continueWithTask storageRef.downloadUrl
+                }.addOnSuccessListener { uri ->
+                var map = HashMap<String, Any>()
+                map["image"] = uri.toString()
+                FirebaseFirestore.getInstance().collection("profileImages").document(uid).set(map)           // 바꾼 이미지의 주소 저장
+            }
+        }
+    }
+
+    fun requestFollow() {
+        //Save data to my account
+        var tsDocFollowing = firestore?.collection("users")?.document(currentUserUid!!)
+        firestore?.runTransaction { transaction ->
+            var followDTO = transaction.get(tsDocFollowing!!).toObject(FollowDTO::class.java)
+            if (followDTO == null) {
+                followDTO = FollowDTO()
+                followDTO!!.followingCount = 1
+                followDTO!!.followings[uid!!] = true
+
+                transaction.set(tsDocFollowing, followDTO)
+                return@runTransaction
+            }
+
+            if (followDTO.followings.containsKey(uid)){
+                //It remove following third person when a third person follow me
+                followDTO?.followingCount = followDTO?.followingCount - 1
+                followDTO?.followers?.remove(uid)
+            } else{
+                //It add following third person when a third person do not follow me
+                followDTO?.followingCount = followDTO?.followingCount + 1
+                followDTO?.followings[uid!!] = true
+            }
+            transaction.set(tsDocFollowing, followDTO)
+            return@runTransaction
+        }
+        //Save data to third person
+        var tsDocFollower = firestore?.collection("users")?.document(uid!!)
+        firestore?.runTransaction { transaction ->
+            var followDTO = transaction.get(tsDocFollower!!).toObject(FollowDTO::class.java)
+            if (followDTO == null) {
+                followDTO = FollowDTO()
+                followDTO!!.followerCount = 1
+                followDTO!!.followers[currentUserUid!!] = true
+
+                transaction.set(tsDocFollower, followDTO!!)
+                return@runTransaction
+            }
+
+            if (followDTO!!.followers.containsKey(currentUserUid)) {
+                //It cancel my follower when I follow a third person
+                followDTO!!.followerCount -= 1
+                followDTO!!.followers.remove(currentUserUid)
+            } else {
+                //It add my follower when I don't follow a third person
+                followDTO!!.followerCount += 1
+                followDTO!!.followers[currentUserUid!!] = true
+            }
+            transaction.set(tsDocFollower,followDTO!!)
+            return@runTransaction
+        }
+    }
+
+    fun getFollowersAndFollowings(){
+        firestore?.collection("users")?.document(uid!!)?.addSnapshotListener { value, error ->
+            if(value == null) return@addSnapshotListener
+
+            var followDTO = value.toObject(FollowDTO::class.java)
+            if (followDTO?.followingCount != null) {
+                fragmentView?.account_tv_following_count?.text = followDTO?.followingCount?.toString()
+            }
+            if (followDTO?.followerCount != null) {
+                fragmentView?.account_tv_follower_count?.text = followDTO?.followerCount?.toString()
+                if (followDTO?.followers?.containsKey(currentUserUid)) {
+                    fragmentView?.account_btn_follow_signout?.text = getString(R.string.follow_cancel)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        fragmentView?.account_btn_follow_signout?.background?.colorFilter = BlendModeColorFilterCompat.createBlendModeColorFilterCompat(R.color.colorLightGray, BlendModeCompat.MULTIPLY)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        fragmentView?.account_btn_follow_signout?.background?.setColorFilter(R.color.colorLightGray.toInt(), PorterDuff.Mode.MULTIPLY)
+                    }
+                } else {
+                    if (uid != currentUserUid) {
+                        fragmentView?.account_btn_follow_signout?.text = getString(R.string.follow)
+                        fragmentView?.account_btn_follow_signout?.background?.colorFilter = null
+                    }
+
+                }
+            }
+        }
+    }
+
+    fun getProfileImage() {
+        firestore?.collection("profileImages")?.document(uid!!)?.addSnapshotListener { documentSnapshot, firebaseFirestoreException ->
+            if (documentSnapshot == null) return@addSnapshotListener
+            if (documentSnapshot.data != null) {
+                var url = documentSnapshot?.data!!["image"]
+                Glide.with(requireActivity()).load(url).apply(RequestOptions().circleCrop()).into(fragmentView?.account_iv_profile!!)
+            }
+        }
     }
 
     inner class UserFragmentRecyclerViewAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
