@@ -1,8 +1,5 @@
 package com.example.aestagram
 
-import android.app.Activity
-import android.content.ContentValues.TAG
-import android.content.Context
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -14,14 +11,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.tasks.Task
 import kotlinx.android.synthetic.main.activity_login.*
-import android.content.pm.PackageManager
 
-import android.content.pm.PackageInfo
-import android.util.Base64.encode
-import android.util.Log
-import androidx.activity.result.ActivityResult
-import androidx.activity.result.ActivityResultCallback
-import androidx.activity.result.contract.ActivityResultContract
 import androidx.activity.result.contract.ActivityResultContracts
 import com.facebook.AccessToken
 import com.facebook.CallbackManager
@@ -29,19 +19,17 @@ import com.facebook.FacebookCallback
 import com.facebook.FacebookException
 import com.facebook.login.LoginManager
 import com.facebook.login.LoginResult
+import com.google.android.gms.auth.api.Auth
 import com.google.firebase.auth.*
-import com.google.zxing.qrcode.encoder.Encoder.encode
-import java.lang.Exception
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.util.*
 import java.util.Arrays.asList
 
 
 class LoginActivity : AppCompatActivity() {
     var auth : FirebaseAuth? = null
-    var launcher : ActivityResultLauncher<String>? = null
     var callbackManager : CallbackManager? = null
+
+    private var googleSignInClient : GoogleSignInClient?= null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,22 +41,39 @@ class LoginActivity : AppCompatActivity() {
         }
 
         google_sign_in_button.setOnClickListener {
-            launcher!!.launch("466982309768-cqjv3k61vuessgimrtmq15rkuhhg1n5f.apps.googleusercontent.com")
+            googleLogin()
         }
+
+        var gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(getString(R.string.web_client_id))
+            .requestEmail()
+            .build()
+        googleSignInClient = GoogleSignIn.getClient(this, gso)
 
         facebook_login_button.setOnClickListener {
             facebookLogin()
         }
 
-        // 구글 로그인 화면 -> LoginActivity로 돌아온 콜백 함수
-        launcher = registerForActivityResult(SignInIntentContract()) { result: String? ->
-            result?.let {
-                firebaseAuthWithGoogle(it)  // tokenId를 이용해 firebase에 인증하는 함수
-            }
-        }
-
         callbackManager = CallbackManager.Factory.create()
+    }
 
+    fun googleLogin() {
+        var signInIntent = googleSignInClient?.signInIntent
+        mlauncher.launch(signInIntent)
+    }
+
+    val mlauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        result ->
+        var value = Auth.GoogleSignInApi.getSignInResultFromIntent(result.data)!!
+
+        if (value.isSuccess) {
+            var account = value.signInAccount
+            firebaseAuthWithGoogle(account)
+            Toast.makeText(this, "성공", Toast.LENGTH_LONG).show()
+        }
+        else {
+            Toast.makeText(this, "실패", Toast.LENGTH_LONG).show()
+        }
     }
 
     override fun onStart() {
@@ -126,9 +131,9 @@ class LoginActivity : AppCompatActivity() {
     }
 
     // tokenId로 firebase에 인증하는 함수
-   private fun firebaseAuthWithGoogle(idToken: String) {
+   private fun firebaseAuthWithGoogle(idToken: GoogleSignInAccount?) {
         // it가 tokenId, credential은 Firebase 사용자 인증 정보
-        var credential = GoogleAuthProvider.getCredential(idToken, null)
+        var credential = GoogleAuthProvider.getCredential(idToken?.idToken, null)
 
         // credential로 Firebase 인증
         auth!!.signInWithCredential(credential)
@@ -188,5 +193,4 @@ class LoginActivity : AppCompatActivity() {
             finish()
         }
     }
-
 }

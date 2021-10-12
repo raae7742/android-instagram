@@ -16,6 +16,7 @@
     <string name="signout_success">로그아웃 성공</string>
     <string name="signout_fail">Signout fail</string>
     <string name="signout_fail_null">Please enter your email and password</string>
+    <string name="web_client_id">466982309768-cqjv3k61vuessgimrtmq15rkuhhg1n5f.apps.googleusercontent.com</string>
 
     <!-- Bottom Navigation View -->
     <string name="home">home</string>
