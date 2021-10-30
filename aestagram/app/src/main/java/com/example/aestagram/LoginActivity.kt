@@ -102,9 +102,7 @@ class LoginActivity : AppCompatActivity() {
                 override fun onError(error: FacebookException?) {
 
                 }
-
             })
-
     }
 
 
