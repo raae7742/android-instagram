@@ -22,11 +22,13 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.aestagram.LoginActivity
 import com.example.aestagram.MainActivity
 import com.example.aestagram.R
+import com.example.aestagram.navigation.model.AlarmDTO
 import com.example.aestagram.navigation.model.ContentDTO
 import com.example.aestagram.navigation.model.FollowDTO
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.storage.UploadTask
 import kotlinx.android.synthetic.main.activity_add_photo.*
@@ -112,7 +114,6 @@ class UserFragment : Fragment() {
                 followDTO = FollowDTO()
                 followDTO!!.followingCount = 1
                 followDTO!!.followings[uid!!] = true
-
                 transaction.set(tsDocFollowing, followDTO)
                 return@runTransaction
             }
@@ -137,7 +138,7 @@ class UserFragment : Fragment() {
                 followDTO = FollowDTO()
                 followDTO!!.followerCount = 1
                 followDTO!!.followers[currentUserUid!!] = true
-
+                followAlarm(uid!!)
                 transaction.set(tsDocFollower, followDTO!!)
                 return@runTransaction
             }
@@ -150,6 +151,7 @@ class UserFragment : Fragment() {
                 //It add my follower when I don't follow a third person
                 followDTO!!.followerCount += 1
                 followDTO!!.followers[currentUserUid!!] = true
+                followAlarm(uid!!)
             }
             transaction.set(tsDocFollower,followDTO!!)
             return@runTransaction
@@ -183,6 +185,16 @@ class UserFragment : Fragment() {
                 }
             }
         }
+    }
+
+    fun followAlarm(destinationUid : String) {
+        var alarmDTO  = AlarmDTO()
+        alarmDTO.destinationUid = destinationUid
+        alarmDTO.userId = auth?.currentUser?.uid
+        alarmDTO.timestamp = System.currentTimeMillis()
+        alarmDTO.uid = auth?.currentUser?.uid
+        alarmDTO.kind = 2
+        FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
     }
 
     fun getProfileImage() {
