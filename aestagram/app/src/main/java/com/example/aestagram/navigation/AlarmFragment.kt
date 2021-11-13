@@ -69,7 +69,7 @@ class AlarmFragment : Fragment() {
 
             when(alarmDTOList[position].kind) {
                 0 -> {
-                    var str_0 = alarmDTOList[position].userId + getString(R.string.alarm_favorite)
+                    var str_0 = alarmDTOList[position].userId + " " + getString(R.string.alarm_favorite)
                     view.commentviewitem_textview_profile.text = str_0
                 }
                 1 -> {

@@ -25,6 +25,7 @@ import com.example.aestagram.R
 import com.example.aestagram.navigation.model.AlarmDTO
 import com.example.aestagram.navigation.model.ContentDTO
 import com.example.aestagram.navigation.model.FollowDTO
+import com.example.aestagram.navigation.util.FcmPush
 import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -190,11 +191,14 @@ class UserFragment : Fragment() {
     fun followAlarm(destinationUid : String) {
         var alarmDTO  = AlarmDTO()
         alarmDTO.destinationUid = destinationUid
-        alarmDTO.userId = auth?.currentUser?.uid
+        alarmDTO.userId = auth?.currentUser?.email
         alarmDTO.timestamp = System.currentTimeMillis()
         alarmDTO.uid = auth?.currentUser?.uid
         alarmDTO.kind = 2
         FirebaseFirestore.getInstance().collection("alarms").document().set(alarmDTO)
+
+        var message = FirebaseAuth.getInstance()?.currentUser?.email + " " + getString(R.string.alarm_follow)
+        FcmPush.instance.sendMessage(destinationUid, "Aestagram", message)
     }
 
     fun getProfileImage() {
